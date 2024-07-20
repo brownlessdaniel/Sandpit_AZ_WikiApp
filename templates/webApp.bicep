@@ -2,9 +2,11 @@ param location string
 param appServicePlanName string
 param appServiceSKU string            // F1
 param appServiceName string
-param tags object
+// param tags object
 param myIPAddress string
 param pythonVersion string
+param healthCheckPath string
+param vnetName string
 
 targetScope = 'resourceGroup'
 
@@ -12,7 +14,7 @@ resource appServicePlan 'Microsoft.Web/serverfarms@2020-06-01' = {
   name: appServicePlanName
   location: location
   properties: {
-    reserved: true
+    reserved: true // needs to be true for linux
   }
   sku: {
     name: appServiceSKU
@@ -23,10 +25,10 @@ resource appServicePlan 'Microsoft.Web/serverfarms@2020-06-01' = {
 resource wikiApp 'Microsoft.Web/sites@2022-09-01' = {
   name: appServiceName
   location: location
-  tags: tags
+  // tags: tags
   kind: 'app,linux'
 
-  // identity: {
+  // identity: {s
   //   type: ''
   // }
 
@@ -39,14 +41,14 @@ resource wikiApp 'Microsoft.Web/sites@2022-09-01' = {
       pythonVersion: pythonVersion
       alwaysOn: true
       detailedErrorLoggingEnabled: true
-      healthCheckPath: '/'
+      healthCheckPath: healthCheckPath
       http20Enabled: true
       minTlsVersion: '1.2'
       httpLoggingEnabled: true
       logsDirectorySizeLimit: 2000
       numberOfWorkers: 2
 
-      vnetName: 'string'
+      vnetName: vnetName
       vnetRouteAllEnabled: true
       publicNetworkAccess: 'Enabled'
       ipSecurityRestrictionsDefaultAction: 'Deny'

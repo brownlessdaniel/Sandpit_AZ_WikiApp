@@ -3,7 +3,7 @@ param appRGName string
 
 targetScope = 'subscription'
 
-resource coreRG 'Microsoft.Resources/resourceGroups@2022-09-01' = {
+resource appRG 'Microsoft.Resources/resourceGroups@2022-09-01' = {
   name: appRGName
   location: location
 }
