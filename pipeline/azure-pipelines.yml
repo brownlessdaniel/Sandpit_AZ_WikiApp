@@ -33,12 +33,16 @@ stages:
       appRGName: $(appRGName)
 
 
-# - stage: Plan
-  # condition: and(succeeded(), eq('${{ parameters.action }}', 'plan'))
-#   dependsOn: Validate
-#   jobs:
-#   - template: './plan.yml'
-#     # parameters:
+- stage: Plan
+  condition: and(succeeded(), eq('${{ parameters.action }}', 'plan'))
+  dependsOn: Validate
+  jobs:
+  - template: './plan.yml'
+    parameters:
+      serviceConnectionName: $(serviceconnectionName)
+      appRGName: $(appRGName)
+      location: $(location)
+      subscriptionID: $(subscriptionID)      
 
 
 - stage: Apply
