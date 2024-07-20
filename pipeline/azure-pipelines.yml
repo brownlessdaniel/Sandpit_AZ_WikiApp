@@ -1,0 +1,57 @@
+trigger: none
+
+pool:
+  vmImage: ubuntu-latest
+
+parameters:
+- name: action
+  displayName: action
+  type: string
+  values:
+  - plan
+  - apply
+  - destroy
+
+variables:
+- group: Sandpit-Global
+
+
+stages:
+- stage: Build
+  template: './build.yml'
+
+- stage: Validate
+  dependsOn: Build
+  template: './deploy.yml'
+  parameters:
+    deploymentMode: Validate
+    serviceConnectionName: $(serviceConnectionName)
+    location: $(location)
+    subscriptionID: $(subscriptionID)
+    appRGName: $(appRGName)
+
+
+- stage: Plan
+  dependsOn: Validate
+  template: './plan.yml'
+
+
+- stage: Apply
+  dependsOn: Validate
+  template: './deploy.yml'
+  parameters:
+    deploymentMode: Apply
+    serviceConnectionName: $(serviceConnectionName)
+    location: $(location)
+    subscriptionID: $(subscriptionID)
+    appRGName: $(appRGName)
+
+- Stage: Destroy
+  dependsOn: Validate
+  template: './deploy.yml'
+  parameters:
+    deploymentMode: Validate
+    serviceConnectionName: $(serviceConnectionName)
+    location: $(location)
+    subscriptionID: $(subscriptionID)
+    appRGName: $(appRGName)

@@ -1,0 +1,32 @@
+jobs:
+- job: Build
+  displayName: 'Generate timestamp tag'
+  steps:
+  - checkout: self
+  - task: CmdLine@2
+    displayName: 'Generate timestamp and repository tags'
+    inputs:
+      script: |
+        echo "##vso[task.setvariable variable=timestampTag;]$(date +'%D %T')"
+        echo "##vso[task.setvariable variable=repositoryTag;]$(Build.Repository.Name)"
+  
+  - task: qetza.replacetokens.replacetokens-task.replacetokens@6
+    displayName: 'Replace Tokens'
+    inputs:
+      sources: '**/*.bicepparam'
+      actionOnMissing: 'warn'
+      tokenPrefix: '#{'
+      tokenSuffix: '}#'
+  
+  - task: CmdLine@2
+    displayName: 'Print params'
+    inputs:
+      script: |
+        echo printing bicepparam files...\n
+        find . -name "*.bicepparam" -exec sh -c 'echo "##########\nFile: $1\n##########"; cat "$1"' sh {} \;
+  
+  - task: PublishPipelineArtifact@1
+    displayName: 'Publish Artifacts'
+    inputs:
+      targetPath: '$(System.DefaultWorkingDirectory)'
+      artifact: '$(Build.DefinitionName)'

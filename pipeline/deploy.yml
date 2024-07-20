@@ -1,0 +1,65 @@
+parameters:
+- name: deploymentMode
+  type: string
+  default: Validate
+- name: serviceConnectionName
+  type: string
+- name: location
+  type: string
+- name: subscriptionID
+  type: string
+- name: templatesDir
+  type: string
+  default: '$(System.DefaultWorkingDirectory)/$(Build.DefinitionName)/templates'
+- name: appRGName
+  type: string
+
+
+jobs:
+- job: '${{ parameters.deploymentMode }}'
+  displayName: '${{ parameters.deploymentMode }}'
+  steps:
+  - checkout: none
+  - download: current
+    artifact: '$(Build.DefinitionName)'
+  - task: CmdLine@2
+    displayName: 'Move artifacts to default workdir'
+    inputs:
+      script: |
+        echo "===="
+        echo "moving artifact from $(Pipeline.Workspace)/$(Build.DefinitionName) to $(System.DefaultWorkingDirectory)/$(Build.DefinitionName)"
+        mv '$(Pipeline.Workspace)/$(Build.DefinitionName)' '$(System.DefaultWorkingDirectory)/$(Build.DefinitionName)'
+        ls $(System.DefaultWorkingDirectory)
+        echo "done"
+        echo "===="
+  - task: CmdLine@2
+    displayName: 'check bicepparams'
+    inputs:
+      script: |
+        find . -name "*.bicepparam" -exec sh -c 'echo "##########\nFile: $1\n##########"; cat "$1"' sh {} \;
+
+  - task: AzureResourceManagerTemplateDeployment@3
+    displayName: '${{ parameters.deploymentMode }} resourceGroup.bicep'
+    inputs:
+      connectedServiceName: '${{ parameters.serviceConnectionName }}'
+      location: ${{ parameters.location }}
+      deploymentScope: 'Subscription'
+      subscriptionId: ${{ parameters.subscriptionID }}
+      csmFile: '${{ parameters.templatesDir }}/resourceGroup.bicep'
+      deploymentMode: '${{ parameters.deploymentMode }}'
+      overrideParameters: >
+        -appRGName ${{ parameters.appRGName }}
+        -location ${{ parameters.location }}
+
+  - task: AzureResourceManagerTemplateDeployment@3
+    displayName: '${{ parameters.deploymentMode }} webApp.bicep'
+    condition: and(succeeded(), ne('${{ parameters.deploymentMode }}', 'destroy'))
+    inputs:
+      connectedServiceName: '${{ parameters.serviceConnectionName }}'
+      location: ${{ parameters.location }}
+      deploymentScope: 'Resource Group'
+      resourceGroupName: ${{ parameters.coreRGName }}
+      subscriptionId: ${{ parameters.subscriptionID }}
+      csmFile: '${{ parameters.templatesDir }}/webApp.bicep'
+      csmParametersFile: '${{ parameters.templatesDir }}/webApp.bicepparam'
+      deploymentMode: ${{ parameters.deploymentMode }}
