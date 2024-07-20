@@ -58,7 +58,7 @@ jobs:
       connectedServiceName: '${{ parameters.serviceConnectionName }}'
       location: ${{ parameters.location }}
       deploymentScope: 'Resource Group'
-      resourceGroupName: ${{ parameters.coreRGName }}
+      resourceGroupName: ${{ parameters.appRGName }}
       subscriptionId: ${{ parameters.subscriptionID }}
       csmFile: '${{ parameters.templatesDir }}/webApp.bicep'
       csmParametersFile: '${{ parameters.templatesDir }}/webApp.bicepparam'

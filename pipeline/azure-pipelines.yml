@@ -18,40 +18,49 @@ variables:
 
 stages:
 - stage: Build
-  template: './build.yml'
+  jobs:
+  - template: './build.yml'
 
 - stage: Validate
   dependsOn: Build
-  template: './deploy.yml'
-  parameters:
-    deploymentMode: Validate
-    serviceConnectionName: $(serviceConnectionName)
-    location: $(location)
-    subscriptionID: $(subscriptionID)
-    appRGName: $(appRGName)
+  jobs:
+  - template: './deploy.yml'
+    parameters:
+      deploymentMode: Validate
+      serviceConnectionName: $(serviceConnectionName)
+      location: $(location)
+      subscriptionID: $(subscriptionID)
+      appRGName: $(appRGName)
 
 
-- stage: Plan
-  dependsOn: Validate
-  template: './plan.yml'
+# - stage: Plan
+  # condition: and(succeeded(), eq('${{ parameters.action }}', 'plan'))
+#   dependsOn: Validate
+#   jobs:
+#   - template: './plan.yml'
+#     # parameters:
 
 
 - stage: Apply
+  condition: and(succeeded(), eq('${{ parameters.action }}', 'apply'))
   dependsOn: Validate
-  template: './deploy.yml'
-  parameters:
-    deploymentMode: Apply
-    serviceConnectionName: $(serviceConnectionName)
-    location: $(location)
-    subscriptionID: $(subscriptionID)
-    appRGName: $(appRGName)
+  jobs:
+  - template: './deploy.yml'
+    parameters:
+      deploymentMode: 'Incremental'
+      serviceConnectionName: $(serviceConnectionName)
+      location: $(location)
+      subscriptionID: $(subscriptionID)
+      appRGName: $(appRGName)
 
-- Stage: Destroy
+- stage: Destroy
+  condition: and(succeeded(), eq('${{ parameters.action }}', 'destroy'))
   dependsOn: Validate
-  template: './deploy.yml'
-  parameters:
-    deploymentMode: Validate
-    serviceConnectionName: $(serviceConnectionName)
-    location: $(location)
-    subscriptionID: $(subscriptionID)
-    appRGName: $(appRGName)
+  jobs:
+  - template: './deploy.yml'
+    parameters:
+      deploymentMode: 'Incremental'
+      serviceConnectionName: $(serviceConnectionName)
+      location: $(location)
+      subscriptionID: $(subscriptionID)
+      appRGName: $(appRGName)
