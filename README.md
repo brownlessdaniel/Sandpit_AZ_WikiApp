@@ -3,7 +3,8 @@ Azure WebApp and Database (TODO) for hosting a python flask wiki app
 
 ## Pipeline
 Azure DevOps pipeline templates can be found in the templates directory.
-![alt text](image.png)
+
+![alt text](./documentation/image.png)
 
 Each pipeline run is divided into three stages: 'Build', Validate', and 'Plan|Apply|Destroy'. These are outlined below. Conditions and dependencies are used on each stage to ensure the Build and Validate stages run successfully. For example:
 ```yml

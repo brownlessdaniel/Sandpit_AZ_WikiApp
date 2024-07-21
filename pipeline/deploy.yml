@@ -34,7 +34,7 @@ jobs:
         echo "===="
 
   - task: CmdLine@2
-    displayName: 'check bicepparams'
+    displayName: 'check params'
     inputs:
       script: |
         find . -name "*.bicepparam" -exec sh -c 'echo "##########\nFile: $1\n##########"; cat "$1"' sh {} \;
