@@ -13,6 +13,9 @@ parameters:
   default: '$(System.DefaultWorkingDirectory)/$(Build.DefinitionName)/templates'
 - name: appRGName
   type: string
+- name: tagsString
+  type: string
+  default: ''
 
 
 jobs:
@@ -25,18 +28,21 @@ jobs:
   - task: CmdLine@2
     displayName: 'Move artifacts to default workdir'
     inputs:
-      script: |
+      script: |               # preserves line endings.
         echo "===="
         echo "moving artifact from $(Pipeline.Workspace)/$(Build.DefinitionName) to $(System.DefaultWorkingDirectory)/$(Build.DefinitionName)"
         mv '$(Pipeline.Workspace)/$(Build.DefinitionName)' '$(System.DefaultWorkingDirectory)/$(Build.DefinitionName)'
         ls $(System.DefaultWorkingDirectory)
         echo "done"
         echo "===="
+
   - task: CmdLine@2
     displayName: 'check bicepparams'
     inputs:
       script: |
         find . -name "*.bicepparam" -exec sh -c 'echo "##########\nFile: $1\n##########"; cat "$1"' sh {} \;
+        echo "Tags:"
+        echo ${{ parameters.tagsString }} | jq
 
   - task: AzureResourceManagerTemplateDeployment@3
     displayName: '${{ parameters.deploymentMode }} resourceGroup.bicep'
@@ -47,9 +53,10 @@ jobs:
       subscriptionId: ${{ parameters.subscriptionID }}
       csmFile: '${{ parameters.templatesDir }}/resourceGroup.bicep'
       deploymentMode: '${{ parameters.deploymentMode }}'
-      overrideParameters: >
+      overrideParameters: >                   # 'Folds' line endings into spaces
         -appRGName ${{ parameters.appRGName }}
         -location ${{ parameters.location }}
+        -tagsString ${{ parameters.tagsString }}
 
   - task: AzureResourceManagerTemplateDeployment@3
     displayName: '${{ parameters.deploymentMode }} webApp.bicep'
@@ -63,3 +70,5 @@ jobs:
       csmFile: '${{ parameters.templatesDir }}/webApp.bicep'
       csmParametersFile: '${{ parameters.templatesDir }}/webApp.bicepparam'
       deploymentMode: ${{ parameters.deploymentMode }}
+      overrideParameters: >
+        -tagsString ${{ parameters.tagsString }}

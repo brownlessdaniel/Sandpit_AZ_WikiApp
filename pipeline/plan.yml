@@ -10,6 +10,9 @@ parameters:
 - name: templatesDir
   type: string
   default: '$(System.DefaultWorkingDirectory)/$(Build.DefinitionName)/templates'
+- name: tagsString
+  type: string
+  default: ''
 
 jobs:
 - job: planResourceGroupBicep
@@ -38,7 +41,8 @@ jobs:
       overrideParameters: >
         -appRGName ${{ parameters.appRGName }}
         -location ${{ parameters.location }}
-  
+        -tagsString ${{ parameters.tagsString }}
+
   - task: AzureCLI@2
     displayName: plan webApp.bicep
     inputs:
@@ -49,4 +53,5 @@ jobs:
         az deployment group what-if \
           --resource-group ${{ parameters.appRGName }} \
           --template-file '${{ parameters.templatesDir }}/webApp.bicep' \
-          --parameters '${{ parameters.templatesDir }}/webApp.bicepparam'  
+          --parameters '${{ parameters.templatesDir }}/webApp.bicepparam'  \
+            tagsString=${{ parameters.tagsString }}

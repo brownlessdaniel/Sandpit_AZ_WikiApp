@@ -17,7 +17,7 @@ variables:
 
 
 stages:
-- stage: Build
+- stage: build
   jobs:
   - template: './build.yml'
 
@@ -33,7 +33,7 @@ stages:
       appRGName: $(appRGName)
 
 
-- stage: Plan
+- stage: plan
   condition: and(succeeded(), eq('${{ parameters.action }}', 'plan'))
   dependsOn: Validate
   jobs:
@@ -42,10 +42,11 @@ stages:
       serviceConnectionName: $(serviceconnectionName)
       appRGName: $(appRGName)
       location: $(location)
-      subscriptionID: $(subscriptionID)      
+      subscriptionID: $(subscriptionID)
+      tagsString: $[stageDependencies.build.build.outputs['generateTags.tagsString']]
 
 
-- stage: Apply
+- stage: apply
   condition: and(succeeded(), eq('${{ parameters.action }}', 'apply'))
   dependsOn: Validate
   jobs:
@@ -56,8 +57,9 @@ stages:
       location: $(location)
       subscriptionID: $(subscriptionID)
       appRGName: $(appRGName)
+      tagsString: $[stageDependencies.build.build.outputs['generateTags.tagsString']]
 
-- stage: Destroy
+- stage: destroy
   condition: and(succeeded(), eq('${{ parameters.action }}', 'destroy'))
   dependsOn: Validate
   jobs:

@@ -2,32 +2,36 @@ param location string
 param appServicePlanName string
 param appServiceSKU string            // F1
 param appServiceName string
-// param tags object
+
 param myIPAddress string
 param pythonVersion string
 param healthCheckPath string
 param vnetName string
+param tagsString string = '{}'
 
 targetScope = 'resourceGroup'
+
+
+var tags = json(tagsString)
 
 resource appServicePlan 'Microsoft.Web/serverfarms@2020-06-01' = {
   name: appServicePlanName
   location: location
+  kind: 'linux'
+  tags: tags
   properties: {
     reserved: true // needs to be true for linux
   }
   sku: {
     name: appServiceSKU
   }
-  kind: 'linux'
 }
 
 resource wikiApp 'Microsoft.Web/sites@2022-09-01' = {
   name: appServiceName
   location: location
-  // tags: tags
   kind: 'app,linux'
-
+  tags: tags
   // identity: {s
   //   type: ''
   // }

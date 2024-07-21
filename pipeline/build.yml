@@ -1,15 +1,17 @@
 jobs:
-- job: Build
-  displayName: 'Generate timestamp tag'
+- job: build
+  displayName: Build
   steps:
   - checkout: self
   - task: CmdLine@2
-    displayName: 'Generate timestamp and repository tags'
+    name: generateTags
+    displayName: 'Generate tags'
     inputs:
       script: |
-        echo "##vso[task.setvariable variable=timestampTag;]$(date +'%D %T')"
-        echo "##vso[task.setvariable variable=repositoryTag;]$(Build.Repository.Name)"
-  
+        timestampTag=$(date +'%D %T')
+        repositoryTag=$(Build.Repository.Name)
+        echo "##vso[task.setvariable variable=tagsString;isoutput=true;isreadonly=true]{\"Owner\":\"Bicep\", \"DeploymentTimestamp\":\"$timestampTag\", \"DeployRepository\": \"$repositoryTag\"}"
+
   - task: qetza.replacetokens.replacetokens-task.replacetokens@6
     displayName: 'Replace Tokens'
     inputs:
@@ -22,7 +24,11 @@ jobs:
     displayName: 'Print params'
     inputs:
       script: |
-        echo printing bicepparam files...\n
+        echo "\nprinting tags...\n"
+        echo $(tagsString)
+        echo $(tagsString) | jq
+
+        echo "\nprinting bicepparam files...\n"
         find . -name "*.bicepparam" -exec sh -c 'echo "##########\nFile: $1\n##########"; cat "$1"' sh {} \;
   
   - task: PublishPipelineArtifact@1
