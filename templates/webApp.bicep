@@ -39,15 +39,12 @@ resource wikiApp 'Microsoft.Web/sites@2022-09-01' = {
     httpsOnly: false
     siteConfig: {
       pythonVersion: pythonVersion
-      alwaysOn: true
       detailedErrorLoggingEnabled: true
       healthCheckPath: healthCheckPath
       http20Enabled: true
       minTlsVersion: '1.2'
       httpLoggingEnabled: true
       logsDirectorySizeLimit: 2000
-      numberOfWorkers: 2
-
       vnetName: vnetName
       vnetRouteAllEnabled: true
       publicNetworkAccess: 'Enabled'
@@ -59,15 +56,14 @@ resource wikiApp 'Microsoft.Web/sites@2022-09-01' = {
           description: 'Allow my IP'
           priority: 1
           ipAddress: myIPAddress
-          subnetMask: '255.255.255.255'
         }
       ]
       scmIpSecurityRestrictionsDefaultAction: 'Deny'
       // scmType: 'GitHub'
       limits: {
-        maxDiskSizeInMb: 4000
-        maxMemoryInMb: 2000
-        maxPercentageCpu: 70
+        maxDiskSizeInMb: 1000
+        maxMemoryInMb: 1000
+        // maxPercentageCpu: 70
       }
       // managedServiceIdentityId: ''
     }
