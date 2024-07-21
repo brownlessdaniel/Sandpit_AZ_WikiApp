@@ -1,3 +1,5 @@
+targetScope = 'resourceGroup'
+
 param location string
 param appServicePlanName string
 param appServiceSKU string            // F1
@@ -9,7 +11,7 @@ param healthCheckPath string
 param vnetName string
 param tagsString string = '{}'
 
-targetScope = 'resourceGroup'
+
 
 
 var tags = json(tagsString)

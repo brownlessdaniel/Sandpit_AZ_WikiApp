@@ -31,7 +31,7 @@ stages:
       location: $(location)
       subscriptionID: $(subscriptionID)
       appRGName: $(appRGName)
-
+      tagsString: $[stageDependencies.build.build.outputs['generateTags.tagsString']]
 
 - stage: plan
   condition: and(succeeded(), eq('${{ parameters.action }}', 'plan'))

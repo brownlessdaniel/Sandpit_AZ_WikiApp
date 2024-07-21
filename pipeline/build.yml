@@ -7,10 +7,14 @@ jobs:
     name: generateTags
     displayName: 'Generate tags'
     inputs:
-      script: |
+      script: | 
         timestampTag=$(date +'%D %T')
         repositoryTag=$(Build.Repository.Name)
-        echo "##vso[task.setvariable variable=tagsString;isoutput=true;isreadonly=true]{\"Owner\":\"Bicep\", \"DeploymentTimestamp\":\"$timestampTag\", \"DeployRepository\": \"$repositoryTag\"}"
+        TAGS='{\"Owner\":\"Bicep\", \"DeploymentTimestamp\":\"$timestampTag\", \"DeployRepository\": \"$repositoryTag\"}'
+        # TAGS="testinggggggggggggggggggggggggggggggg"
+        echo "##vso[task.setvariable variable=tagsString;isOutput=true;isReadOnly=true]$TAGS"
+        echo "##vso[task.setvariable variable=tagsStringDebug;isReadOnly=true]$TAGS"                # Only this one is available within the current job
+        echo "Tags are: $TAGS"
 
   - task: qetza.replacetokens.replacetokens-task.replacetokens@6
     displayName: 'Replace Tokens'
@@ -25,8 +29,8 @@ jobs:
     inputs:
       script: |
         echo "\nprinting tags...\n"
-        echo $(tagsString)
-        echo $(tagsString) | jq
+        echo $(tagsStringDebug)
+        echo $(tagsStringDebug) | jq
 
         echo "\nprinting bicepparam files...\n"
         find . -name "*.bicepparam" -exec sh -c 'echo "##########\nFile: $1\n##########"; cat "$1"' sh {} \;
