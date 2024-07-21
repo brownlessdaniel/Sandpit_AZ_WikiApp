@@ -1,3 +1,8 @@
+parameters:
+- name: tags_json_filepath
+  type: string
+  default: '$(System.DefaultWorkingDirectory)/templates/buildTags.json'
+
 jobs:
 - job: build
   displayName: Build
@@ -8,13 +13,12 @@ jobs:
     displayName: 'Generate tags'
     inputs:
       script: | 
+        echo "Generating tags..."
         timestampTag=$(date +'%D %T')
         repositoryTag=$(Build.Repository.Name)
-        TAGS='{\"Owner\":\"Bicep\", \"DeploymentTimestamp\":\"$timestampTag\", \"DeployRepository\": \"$repositoryTag\"}'
-        # TAGS="testinggggggggggggggggggggggggggggggg"
-        echo "##vso[task.setvariable variable=tagsString;isOutput=true;isReadOnly=true]$TAGS"
-        echo "##vso[task.setvariable variable=tagsStringDebug;isReadOnly=true]$TAGS"                # Only this one is available within the current job
-        echo "Tags are: $TAGS"
+        TAGS="{\"Owner\":\"Bicep\", \"DeploymentTimestamp\":\"$timestampTag\", \"DeployRepository\": \"$repositoryTag\"}"
+        touch ${{ parameters.tags_json_filepath }}
+        echo $TAGS | jq > ${{ parameters.tags_json_filepath }}
 
   - task: qetza.replacetokens.replacetokens-task.replacetokens@6
     displayName: 'Replace Tokens'
@@ -29,8 +33,7 @@ jobs:
     inputs:
       script: |
         echo "\nprinting tags...\n"
-        echo $(tagsStringDebug)
-        echo $(tagsStringDebug) | jq
+        cat ${{ parameters.tags_json_filepath }} | jq
 
         echo "\nprinting bicepparam files...\n"
         find . -name "*.bicepparam" -exec sh -c 'echo "##########\nFile: $1\n##########"; cat "$1"' sh {} \;

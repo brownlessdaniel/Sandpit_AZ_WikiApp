@@ -15,7 +15,6 @@ parameters:
 variables:
 - group: Sandpit-Global
 
-
 stages:
 - stage: build
   jobs:
@@ -31,7 +30,6 @@ stages:
       location: $(location)
       subscriptionID: $(subscriptionID)
       appRGName: $(appRGName)
-      tagsString: $[stageDependencies.build.build.outputs['generateTags.tagsString']]
 
 - stage: plan
   condition: and(succeeded(), eq('${{ parameters.action }}', 'plan'))
@@ -43,7 +41,6 @@ stages:
       appRGName: $(appRGName)
       location: $(location)
       subscriptionID: $(subscriptionID)
-      tagsString: $[stageDependencies.build.build.outputs['generateTags.tagsString']]
 
 
 - stage: apply
@@ -57,7 +54,6 @@ stages:
       location: $(location)
       subscriptionID: $(subscriptionID)
       appRGName: $(appRGName)
-      tagsString: $[stageDependencies.build.build.outputs['generateTags.tagsString']]
 
 - stage: destroy
   condition: and(succeeded(), eq('${{ parameters.action }}', 'destroy'))

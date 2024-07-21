@@ -9,12 +9,7 @@ param myIPAddress string
 param pythonVersion string
 param healthCheckPath string
 param vnetName string
-param tagsString string = '{}'
-
-
-
-
-var tags = json(tagsString)
+param tags object = resourceGroup().tags
 
 resource appServicePlan 'Microsoft.Web/serverfarms@2020-06-01' = {
   name: appServicePlanName
