@@ -1,0 +1,45 @@
+parameters:
+- name: tags_json_filepath
+  type: string
+  default: '$(System.DefaultWorkingDirectory)/templates/buildTags.json'
+
+jobs:
+- job: build
+  displayName: Build
+  steps:
+  - checkout: self
+  - task: CmdLine@2
+    name: generateTags
+    displayName: 'Generate tags'
+    inputs:
+      script: | 
+        echo "Generating tags..."
+        timestampTag=$(date +'%D %T')
+        repositoryTag=$(Build.Repository.Name)
+        TAGS="{\"Owner\":\"Bicep\", \"DeploymentTimestamp\":\"$timestampTag\", \"DeployRepository\": \"$repositoryTag\"}"
+        touch ${{ parameters.tags_json_filepath }}
+        echo $TAGS | jq > ${{ parameters.tags_json_filepath }}
+
+  - task: qetza.replacetokens.replacetokens-task.replacetokens@6
+    displayName: 'Replace Tokens'
+    inputs:
+      sources: '**/*.bicepparam'
+      actionOnMissing: 'warn'
+      tokenPrefix: '#{'
+      tokenSuffix: '}#'
+  
+  - task: CmdLine@2
+    displayName: 'Print params'
+    inputs:
+      script: |
+        echo "\nprinting tags...\n"
+        cat ${{ parameters.tags_json_filepath }} | jq
+
+        echo "\nprinting bicepparam files...\n"
+        find . -name "*.bicepparam" -exec sh -c 'echo "##########\nFile: $1\n##########"; cat "$1"' sh {} \;
+  
+  - task: PublishPipelineArtifact@1
+    displayName: 'Publish Artifacts'
+    inputs:
+      targetPath: '$(System.DefaultWorkingDirectory)'
+      artifact: '$(Build.DefinitionName)'

@@ -1,0 +1,55 @@
+parameters:
+- name: serviceConnectionName
+  type: string
+- name: appRGName
+  type: string
+- name: location
+  type: string
+- name: subscriptionID
+  type: string
+- name: templatesDir
+  type: string
+  default: '$(System.DefaultWorkingDirectory)/$(Build.DefinitionName)/templates'
+
+jobs:
+- job: planResourceGroupBicep
+  displayName: plan resourceGroup.bicep
+  steps:
+  - checkout: none
+  - download: current
+    artifact: '$(Build.DefinitionName)'
+  - script: |
+      echo "===="
+      echo "moving artifact from $(Pipeline.Workspace)/$(Build.DefinitionName) to $(DefaultWorkingDirectory)/$(Build.DefinitionName)"
+      mv '$(Pipeline.Workspace)/$(Build.DefinitionName)' '$(System.DefaultWorkingDirectory)/$(Build.DefinitionName)'
+      ls $(System.DefaultWorkingDirectory)
+      echo "done"
+      echo "===="
+
+  - script: |
+
+  - task: AzureResourceManagerTemplateDeployment@3
+    displayName: 'Deploy resourceGroup.bicep'
+    inputs:
+      connectedServiceName: '${{ parameters.serviceConnectionName }}'
+      location: '${{ parameters.location }}'
+      deploymentScope: 'Subscription'
+      subscriptionId: ${{ parameters.subscriptionID }}
+      csmFile: ${{ parameters.templatesDir }}/resourceGroup.bicep
+      deploymentMode: Validate
+      overrideParameters: >
+        -appRGName ${{ parameters.appRGName }}
+        -location ${{ parameters.location }}
+
+  - task: AzureCLI@2
+    displayName: plan webApp.bicep
+    inputs:
+      azureSubscription: '${{ parameters.serviceConnectionName }}'
+      scriptType: 'bash'
+      scriptLocation: 'inlinescript'
+      inlineScript: |
+        az deployment group what-if \
+          --resource-group ${{ parameters.appRGName }} \
+          --template-file '${{ parameters.templatesDir }}/webApp.bicep' \
+          --parameters '${{ parameters.templatesDir }}/webApp.bicepparam'  \
+          --debug

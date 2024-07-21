@@ -1,0 +1,68 @@
+trigger: none
+
+pool:
+  vmImage: ubuntu-latest
+
+parameters:
+- name: action
+  displayName: action
+  type: string
+  values:
+  - plan
+  - apply
+  - destroy
+
+variables:
+- group: Sandpit-Global
+
+stages:
+- stage: build
+  jobs:
+  - template: './build.yml'
+
+- stage: Validate
+  dependsOn: Build
+  jobs:
+  - template: './deploy.yml'
+    parameters:
+      deploymentMode: Validate
+      serviceConnectionName: $(serviceConnectionName)
+      location: $(location)
+      subscriptionID: $(subscriptionID)
+      appRGName: $(appRGName)
+
+- stage: plan
+  condition: and(succeeded(), eq('${{ parameters.action }}', 'plan'))
+  dependsOn: Validate
+  jobs:
+  - template: './plan.yml'
+    parameters:
+      serviceConnectionName: $(serviceconnectionName)
+      appRGName: $(appRGName)
+      location: $(location)
+      subscriptionID: $(subscriptionID)
+
+
+- stage: apply
+  condition: and(succeeded(), eq('${{ parameters.action }}', 'apply'))
+  dependsOn: Validate
+  jobs:
+  - template: './deploy.yml'
+    parameters:
+      deploymentMode: 'Incremental'
+      serviceConnectionName: $(serviceConnectionName)
+      location: $(location)
+      subscriptionID: $(subscriptionID)
+      appRGName: $(appRGName)
+
+- stage: destroy
+  condition: and(succeeded(), eq('${{ parameters.action }}', 'destroy'))
+  dependsOn: Validate
+  jobs:
+  - template: './deploy.yml'
+    parameters:
+      deploymentMode: 'Incremental'
+      serviceConnectionName: $(serviceConnectionName)
+      location: $(location)
+      subscriptionID: $(subscriptionID)
+      appRGName: $(appRGName)
