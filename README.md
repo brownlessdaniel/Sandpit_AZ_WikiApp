@@ -19,7 +19,7 @@ Each of the stages contain a single job, Tasks within a single job run on the sa
 
 ### Build
 - Generates dynamic run-time tags
-- passes ADO Library variables to bicep, using the `qetza.replacetokens.replacetokens-task`.replacetokens@6' task.
+- passes ADO Library variables to bicep, using the `qetza.replacetokens.replacetokens-task.replacetokens@6` task.
 - Publishes the repository as an artifact for use in later stages.
 
 ### Plan
